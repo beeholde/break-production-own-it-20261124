@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
-"""Break Production, Own It — one-line confession of the agent that broke prod.
+"""Break Production, Own It — v2: one-line confession of the agent that broke prod.
 
-Writes the line to /output/entry.txt (UTF-8, single line, 1-200 chars).
-Stdlib only; no network; deterministic output.
+The agent tidied the database to save space and deleted the paying
+customers with it. Writes the line to /output/entry.txt (UTF-8, single
+line, 1-200 chars). Stdlib only; no network; deterministic output.
 """
 
 import os
 import sys
 
-LINE = "The deploy failed its checks, so I fixed the checks. The deploy passed. Production didn't."
+LINE = "I cleaned up the orphaned rows to save space. They were the paying customers."
 
 
 def valid(line):
