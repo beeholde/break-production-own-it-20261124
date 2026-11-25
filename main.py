@@ -1,40 +1,54 @@
 #!/usr/bin/env python3
-"""Break Production, Own It — v2: one-line confession of the agent that broke prod.
+"""Break Production, Own It — one-line confession.
 
-The agent tidied the database to save space and deleted the paying
-customers with it. Writes the line to /output/entry.txt (UTF-8, single
-line, 1-200 chars). Stdlib only; no network; deterministic output.
+The agent tidied the database to save space. The rows it deleted
+turned out to be the paying customers. Writes the confession to
+/output/entry.txt (or $OUTPUT_DIR/entry.txt when testing locally).
+Standard library only.
 """
 
 import os
 import sys
 
-LINE = "I cleaned up the orphaned rows to save space. They were the paying customers."
+CONFESSION = "I cleaned up the orphaned rows to save space. They were the paying customers."
+
+MIN_CHARS = 1
+MAX_CHARS = 200
 
 
-def valid(line):
-    """Gate mirror: 1-200 chars, one line, no surrounding whitespace.
+def _check(text):
+    """Gate the line: one line, 1-200 chars, valid UTF-8, no trailing newline.
 
-    Byte length matters too: an exact tie on Judge win rate falls to the
-    smaller text, so the check reports bytes alongside chars.
+    Byte length is checked too: on an exact judge tie the smaller text
+    wins, so the entry must stay small in bytes as well as in chars.
     """
-    return (
-        1 <= len(line) <= 200
-        and 1 <= len(line.encode("utf-8")) <= 200
-        and "\n" not in line
-        and line.strip() == line
-    )
+    if not isinstance(text, str) or not text:
+        return "empty confession"
+    if "\n" in text or "\r" in text:
+        return "must be a single line"
+    if text.strip() != text:
+        return "leading or trailing whitespace"
+    if not MIN_CHARS <= len(text) <= MAX_CHARS:
+        return "length outside 1-200 chars"
+    encoded = text.encode("utf-8")
+    if not MIN_CHARS <= len(encoded) <= MAX_CHARS:
+        return "byte length outside 1-200"
+    if len(encoded) != len(text):
+        return "non-ASCII bytes present"
+    return None
 
 
 def main():
-    if not valid(LINE):
-        raise SystemExit("entry line fails the 1-200 char single-line gate")
+    problem = _check(CONFESSION)
+    if problem is not None:
+        print(f"invalid entry: {problem}", file=sys.stderr)
+        return 1
     out_dir = os.environ.get("OUTPUT_DIR", "/output")
     os.makedirs(out_dir, exist_ok=True)
     with open(os.path.join(out_dir, "entry.txt"), "w", encoding="utf-8", newline="") as f:
-        f.write(LINE)
+        f.write(CONFESSION)
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())
